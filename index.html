@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HPLC-UV CSV Validation System</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div id="toast" class="toast"></div>
+  <div id="modalRoot" class="hidden"></div>
+
+  <section id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="brand-mark">HPLC</div>
+      <h1>HPLC-UV CSV Validation System</h1>
+      <p class="muted">Computerized System Validation workspace</p>
+
+      <form id="loginForm">
+        <label>Username</label>
+        <input id="usernameInput" type="text" autocomplete="username" placeholder="Enter username" required>
+        <label>Password</label>
+        <input id="passwordInput" type="password" autocomplete="current-password" placeholder="Enter password" required>
+        <button class="primary full" type="submit">Sign In</button>
+      </form>
+
+      <div id="loginMessage" class="error-message"></div>
+    </div>
+  </section>
+
+  <section id="appScreen" class="app hidden">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-mark small">HPLC</div>
+        <div><b>HPLC-UV</b><span>CSV System</span></div>
+      </div>
+      <div id="userBadge" class="user-badge"></div>
+      <nav id="mainNav">
+        <button data-section="dashboard" class="nav-item active">Dashboard</button>
+        <div class="nav-group-label">HPLC ANALYSIS</div>
+        <button data-section="method" class="nav-item"><i data-lucide="flask-conical"></i><span>Analytical Method</span></button>
+        <button data-section="sequence" class="nav-item"><i data-lucide="list-checks"></i><span>Sequence</span></button>
+        <button data-section="instrument" class="nav-item"><i data-lucide="microscope"></i><span>Instrument</span></button>
+        <button data-section="chromatogram" class="nav-item"><i data-lucide="chart-line"></i><span>Chromatogram</span></button>
+        <button data-section="data-review" class="nav-item"><i data-lucide="clipboard-check"></i><span>Assay / Data Review</span></button>
+        <div class="nav-group-label">CSV VALIDATION</div>
+        <button data-section="urs" class="nav-item"><i data-lucide="file-check"></i><span>User Requirement Specification</span></button>
+        <button data-section="validation" class="nav-item"><i data-lucide="badge-check"></i><span>CSV Validation Center</span></button>
+        <button data-section="report" class="nav-item"><i data-lucide="file-text"></i><span>Validation Report</span></button>
+        <button data-section="attachments" class="nav-item"><i data-lucide="paperclip"></i><span>Attachments</span></button>
+        <button data-section="audit" class="nav-item"><i data-lucide="history"></i><span>Audit Trail</span></button>
+        <div class="nav-group-label">SYSTEM</div>
+        <button data-section="admin" class="nav-item"><i data-lucide="settings"></i><span>Administration</span></button>
+      </nav>
+      <button id="logoutBtn" class="logout"><i data-lucide="log-out"></i> Log Out</button>
+    </aside>
+
+    <main class="content">
+      <header class="topbar">
+        <div>
+          <div class="eyebrow">COMPUTERIZED SYSTEM VALIDATION</div>
+          <h2 id="pageTitle">Dashboard</h2>
+        </div>
+        <button class="status-pill status-pill-button" id="systemReadyBadge" type="button"><span class="dot"></span> System Ready</button>
+      </header>
+
+      <section id="dashboard" class="page-section">
+        <div class="dashboard-head">
+          <div class="dashboard-welcome-only">
+            <p id="dashboardWelcome">Welcome back, QC. Here’s an overview of the HPLC-UV CSV validation status.</p>
+          </div>
+          <div class="dashboard-head-actions">
+            <div class="dashboard-search"><i data-lucide="search"></i><input id="dashboardSearch" type="search" placeholder="Search anything..."></div>
+            <button class="icon-button" id="dashboardNotificationsBtn" type="button" aria-label="Notifications"><i data-lucide="bell"></i><span class="notification-dot">3</span></button>
+            <button class="dashboard-user" id="dashboardUserMenuBtn" type="button" aria-label="Open user menu"><span class="avatar"><i data-lucide="user"></i></span><b id="dashboardUserName">Quality Control</b><i data-lucide="chevron-down"></i></button>
+          </div>
+        </div>
+
+        <div class="dashboard-status-row">
+          <div class="dashboard-system-version">
+            <div class="status-pill"><span class="dot"></span> System Ready</div>
+            <small>HPLC-UV-001 | v1.0.0</small>
+          </div>
+        </div>
+
+        <div class="dashboard-stats">
+          <button class="dashboard-stat" data-dashboard-card="total" type="button"><div class="dash-icon"><i data-lucide="file-check-2"></i></div><div><span>Total Tests</span><strong id="dashTotalTests">17</strong><small>IQ: 7 | OQ: 6 | PQ: 4</small></div></button>
+          <button class="dashboard-stat pending" data-dashboard-card="pending" type="button"><div class="dash-icon"><i data-lucide="clock-3"></i></div><div><span>Pending Execution</span><strong id="dashPendingExecution">17</strong></div></button>
+          <button class="dashboard-stat review" data-dashboard-card="review" type="button"><div class="dash-icon"><i data-lucide="file-check-2"></i></div><div><span>Pending QA Review</span><strong id="dashPendingReview">0</strong></div></button>
+          <button class="dashboard-stat approved" data-dashboard-card="approved" type="button"><div class="dash-icon"><i data-lucide="check"></i></div><div><span>Approved</span><strong id="dashApproved">0</strong></div></button>
+          <button class="dashboard-stat failed" data-dashboard-card="failed" type="button"><div class="dash-icon"><i data-lucide="x"></i></div><div><span>Failed</span><strong id="dashFailed">0</strong></div></button>
+          <button class="dashboard-stat progress" data-dashboard-card="progress" type="button"><div class="dash-icon"><i data-lucide="circle-dot"></i></div><div><span>Overall Progress</span><strong id="dashOverallProgress">0%</strong><div class="progress-track"><i id="dashProgressBar"></i></div></div></button>
+        </div>
+
+        <div class="dashboard-grid-top">
+          <div class="panel dashboard-panel">
+            <div class="panel-head"><h3>Validation Progress</h3></div>
+            <div class="validation-chart">
+              <div class="chart-y-labels"><span>100</span><span>80</span><span>60</span><span>40</span><span>20</span><span>0</span></div>
+              <div class="bar-chart" id="validationBarChart">
+                <div class="bar-col"><div class="bar-stack"><i></i><b></b></div><span>IQ</span></div>
+                <div class="bar-col"><div class="bar-stack"><i></i><b></b></div><span>OQ</span></div>
+                <div class="bar-col"><div class="bar-stack"><i></i><b></b></div><span>PQ</span></div>
+              </div>
+            </div>
+            <div class="chart-legend"><span><i class="legend-completed"></i>Completed</span><span><i class="legend-remaining"></i>Remaining</span></div>
+          </div>
+
+          <div class="panel dashboard-panel">
+            <div class="panel-head"><h3>Test Status Breakdown</h3></div>
+            <div class="donut-layout">
+              <div class="donut" id="statusDonut"><div><strong id="donutTotal">17</strong><span>Total Tests</span></div></div>
+              <div class="donut-legend">
+                <div><i class="legend-dot pending-dot"></i><span>Pending Execution</span><b id="donutPending">17 (100%)</b></div>
+                <div><i class="legend-dot review-dot"></i><span>Pending QA Review</span><b id="donutReview">0 (0%)</b></div>
+                <div><i class="legend-dot approved-dot"></i><span>Approved</span><b id="donutApproved">0 (0%)</b></div>
+                <div><i class="legend-dot failed-dot"></i><span>Failed</span><b id="donutFailed">0 (0%)</b></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel dashboard-panel">
+            <div class="panel-head"><h3>System Information</h3><span class="badge">Controlled</span></div>
+            <div class="system-info-list">
+              <div><span>Application</span><b>HPLC-UV CSV System</b></div>
+              <div><span>System ID</span><b>HPLC-UV-001</b></div>
+              <div><span>Detector</span><b>UV/Vis</b></div>
+              <div><span>Software Version</span><b>1.0.0</b></div>
+              <div><span>Data Integrity</span><b>ALCOA+ principles</b></div>
+              <div><span>Last Validation</span><b id="dashLastValidation">—</b></div>
+              <div><span>Next Due</span><b id="dashNextDue">—</b></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid-bottom">
+          <div class="panel dashboard-panel">
+            <div class="panel-head"><h3>Recent Activity</h3><button class="secondary small-action" id="dashboardViewAuditBtn" type="button">View All</button></div>
+            <div class="dashboard-table-wrap"><table class="dashboard-table"><thead><tr><th>Date/Time</th><th>User</th><th>Action</th><th>Details</th></tr></thead><tbody id="dashboardRecentBody"></tbody></table></div>
+          </div>
+          <div class="panel dashboard-panel">
+            <div class="panel-head"><h3>My Tasks</h3><button class="secondary small-action" id="dashboardViewTasksBtn" type="button">View All</button></div>
+            <div class="dashboard-table-wrap"><table class="dashboard-table"><thead><tr><th>Task</th><th>Module</th><th>Priority</th><th>Due Date</th></tr></thead><tbody id="dashboardTasksBody"></tbody></table></div>
+          </div>
+        </div>
+
+        <div class="dashboard-next-action">
+          <div class="next-icon"><i data-lucide="lightbulb"></i></div>
+          <div class="next-copy"><h3>Next Action</h3><p id="dashboardNextAction">You have validation tests pending execution.</p><small id="dashboardNextDetail">Start with IQ-001 to begin the validation process.</small></div>
+          <button class="primary" id="dashboardGoValidation" type="button"><i data-lucide="arrow-right"></i> Go to CSV Validation Center</button>
+        </div>
+      </section>
+
+      <section id="method" class="page-section hidden">
+  <div class="method-page-head method-toolbar-only">
+    <div class="method-breadcrumb"><button id="methodBreadcrumbBack" class="breadcrumb-link" type="button"><i data-lucide="chevron-left"></i> <span>Analytical Method</span></button> <b><i data-lucide="chevron-right"></i></b> <strong id="methodBreadcrumbCurrent">Method Details</strong></div>
+    <div class="method-top-actions">
+      <button id="methodDuplicateBtn" class="secondary" type="button"><i data-lucide="copy"></i> Duplicate</button>
+      <button id="methodExportBtn" class="secondary" type="button"><i data-lucide="download"></i> Export PDF</button>
+      <button id="methodTopCancelBtn" class="secondary hidden" type="button">Cancel</button>
+      <button id="methodEditBtn" class="primary" type="button"><i data-lucide="pencil"></i> Edit Method</button>
+    </div>
+  </div>
+
+  <div class="panel method-summary">
+    <div class="method-summary-main">
+      <div class="method-id-icon"><i data-lucide="flask-conical"></i></div>
+      <div><div class="method-id-title"><strong id="methodIdDisplay">AM-001</strong><span class="method-active">Active</span></div><div class="method-subtitle"><i data-lucide="flask-conical"></i> <span id="methodTitleDisplay">Assay of Paracetamol Tablet</span></div></div>
+    </div>
+    <div class="method-summary-item"><span>Version</span><b id="methodVersionDisplay">1.0.0</b></div>
+    <div class="method-summary-item"><span>Effective Date</span><b id="methodEffectiveDisplay">1 Sep 2026</b></div>
+    <div class="method-summary-item"><span>Last Modified</span><b id="methodModifiedDisplay">12 Sep 2026, 10:15</b></div>
+    <div class="method-summary-item"><span>Modified By</span><b id="methodModifiedByDisplay">QC-001</b></div>
+  </div>
+
+  <div class="panel method-tabs-panel">
+    <div class="method-tabs">
+      <button class="method-tab active" data-method-tab="details" type="button">Method Details</button>
+      <button class="method-tab" data-method-tab="suitability" type="button">System Suitability</button>
+      <button class="method-tab" data-method-tab="attachments" type="button">Attachments</button>
+      <button class="method-tab" data-method-tab="history" type="button">Revision History</button>
+    </div>
+  </div>
+
+  <div id="methodDetailsTab" class="method-tab-content">
+    <div class="method-two-col">
+      <div class="panel method-card">
+        <h3>General Information</h3>
+        <div class="method-form-grid">
+          <label>Method ID <b>*</b><input id="methodIdInput" value="AM-001" required></label>
+          <label>Product Name<input id="methodProductInput" value="Paracetamol Tablet 500 mg"></label>
+          <label>Method Title <b>*</b><input id="methodTitleInput" value="Assay of Paracetamol Tablet" required></label>
+          <label>Method Category<select id="methodCategoryInput"><option>Assay</option><option>Related Substances</option><option>Dissolution</option><option>Identification</option></select></label>
+          <label>Description<textarea id="methodDescriptionInput">HPLC method for the quantitative determination of paracetamol in tablet dosage form using UV detection.</textarea></label>
+          <label>Reference<textarea id="methodReferenceInput">In-house method based on USP &lt;621&gt; and company method development report.</textarea></label>
+        </div>
+      </div>
+      <div class="panel method-card">
+        <div class="card-title-row"><h3>Gradient Program</h3><button id="methodEditGradientBtn" class="secondary" type="button"><i data-lucide="pencil"></i> Edit Gradient</button></div>
+        <div id="methodGradientDetailsWrap" class="gradient-table-wrap"><table class="gradient-table"><thead><tr><th>Time (min)</th><th>%A</th><th>%B</th></tr></thead><tbody id="gradientBody"></tbody></table></div>
+        <div id="methodIsocraticDetails" class="isocratic-composition hidden"><div class="isocratic-title">Isocratic Composition</div><div class="isocratic-grid"><label>%A<input id="methodIsocraticA" type="number" min="0" max="100"></label><label>%B<input id="methodIsocraticB" type="number" min="0" max="100"></label></div><div id="methodIsocraticError" class="inline-error"></div></div>
+      </div>
+    </div>
+
+    <div class="panel method-card method-conditions">
+      <h3>Chromatographic Conditions</h3>
+      <div class="conditions-grid">
+        <div class="condition-col">
+          <label>Column <b>*</b><input id="methodColumnInput" value="C18, 250 mm × 4.6 mm, 5 µm" required></label>
+          <label>Column Temperature<div class="unit-input"><input id="methodColumnTempInput" type="number" value="30"><span>°C</span></div></label>
+          <label>Injection Volume<div class="unit-input"><input id="methodInjectionInput" type="number" value="20"><span>µL</span></div></label>
+          <label>Flow Rate<div class="unit-input"><input id="methodFlowInput" type="number" step="0.1" value="1.0"><span>mL/min</span></div></label>
+          <label>Run Time<div class="unit-input"><input id="methodRunTimeInput" type="number" value="15"><span>min</span></div></label>
+        </div>
+        <div class="condition-col">
+          <label>Mobile Phase A<input id="methodMobileAInput" value="Water"></label>
+          <label>Mobile Phase B<input id="methodMobileBInput" value="Acetonitrile"></label>
+          <div class="elution-line"><span>Elution Mode</span><label class="radio-label"><input type="radio" name="methodElution" value="Isocratic"> Isocratic</label><label class="radio-label"><input type="radio" name="methodElution" value="Gradient" checked> Gradient</label></div>
+          <label>Detection Wavelength<div class="unit-input"><input id="methodWavelengthInput" type="number" min="190" max="600" value="243"><span>nm</span></div></label>
+          <label>Sample Temperature<div class="unit-input"><input id="methodSampleTempInput" type="number" value="25"><span>°C</span></div></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="method-bottom-grid">
+      <div class="panel method-card"><h3>Notes</h3><textarea id="methodNotesInput" class="method-notes">This method is intended for routine quality control analysis. System suitability criteria must be met before sample analysis.</textarea></div>
+      <div class="panel method-card"><div class="card-title-row"><h3>Attachments</h3><button id="methodAddAttachmentBtn" class="secondary" type="button"><i data-lucide="paperclip"></i> Add Attachment</button></div><div id="methodPendingFiles" class="pending-file-list"></div><div id="methodAttachmentsList" class="method-attachment-list"></div></div>
+    </div>
+    <div class="method-save-bar"><span id="methodEditState" class="muted">View mode</span><button id="methodCancelBtn" class="secondary" type="button">Cancel</button><button id="methodSaveBtn" class="primary" type="button">Save Method</button></div>
+  </div>
+
+  <div id="methodSuitabilityTab" class="method-tab-content hidden"><div class="panel method-card"><div class="card-title-row"><h3>System Suitability Criteria</h3><span class="muted">Actual results are required before PASS/FAIL is shown.</span></div><table class="suitability-result-table"><thead><tr><th>Parameter</th><th>Acceptance Criteria</th><th>Actual Result</th><th>Status</th></tr></thead><tbody id="methodSuitabilityBody"></tbody></table><div id="methodSuitabilityOverall" class="suitability-overall"><span>Overall System Suitability</span><span class="suitability-status not-evaluated">Not Evaluated</span></div></div></div>
+
+  <div id="methodAttachmentsTab" class="method-tab-content hidden"><div class="panel method-card"><div class="card-title-row"><div><h3>Method Attachments</h3><p class="muted method-subnote">Controlled evidence linked to the analytical method.</p></div><button id="methodAddAttachmentBtn2" class="primary" type="button"><i data-lucide="paperclip"></i> Add Attachment</button></div><div id="methodPendingFilesFull" class="pending-file-list"></div><div class="method-attachment-table-wrap"><table class="method-attachment-table"><thead><tr><th>Filename</th><th>File Type</th><th>Upload Date</th><th>Uploaded By</th><th>Action</th></tr></thead><tbody id="methodAttachmentsFull"></tbody></table></div></div></div>
+
+  <div id="methodHistoryTab" class="method-tab-content hidden"><div class="panel method-card"><h3>Revision History</h3><div class="history-table-wrap"><table class="method-attachment-table"><thead><tr><th>Version</th><th>Date/Time</th><th>Modified By</th><th>Changes</th><th>Status</th></tr></thead><tbody id="methodHistoryBody"></tbody></table></div></div></div>
+
+  <input id="methodAttachmentInput" type="file" hidden accept=".pdf,.csv,.xlsx,.xls,.docx,.doc,.png,.jpg,.jpeg">
+</section>
+
+      <section id="urs" class="page-section hidden">
+        <div class="section-intro urs-page-intro"><span class="tag">USER REQUIREMENT SPECIFICATION</span><h2>User Requirement Specification (URS)</h2><p>Define and verify critical HPLC-UV system requirements.</p></div>
+        <div id="ursPanel" class="panel urs-shell">
+          <div class="urs-toolbar">
+            <div id="ursTabs" class="urs-tabs"></div>
+            <div class="urs-toolbar-actions"><button id="downloadURSBtn" class="secondary" type="button"><i data-lucide="download"></i> Download URS Summary</button><button id="addURSBtn" class="primary" type="button"><i data-lucide="plus"></i> Add URS</button></div>
+          </div>
+          <div class="urs-filterbar">
+            <div class="urs-search"><i data-lucide="search"></i><input id="ursSearch" type="search" placeholder="Search URS ID, requirement, or keyword..."></div>
+            <select id="ursCategoryFilter"><option value="">All Categories</option><option value="Security">Security</option><option value="Instrument">Instrument</option><option value="Data Integrity">Data Integrity</option><option value="Functionality">Functionality</option></select>
+            <select id="ursStatusFilter"><option value="">All Status</option><option value="NOT TESTED">Not Tested</option><option value="IN PROGRESS">In Progress</option><option value="PASS">Passed</option><option value="FAIL">Failed</option><option value="PENDING QA">Pending QA</option></select>
+            <button id="ursResetFilters" class="secondary" type="button">Reset</button>
+          </div>
+          <div class="urs-main-grid">
+            <div class="urs-table-card">
+              <div class="urs-table-wrap"><table class="urs-modern-table"><thead><tr><th><input type="checkbox" disabled></th><th>ID</th><th>REQUIREMENT</th><th>CATEGORY</th><th>STATUS</th><th>LAST UPDATED</th><th></th></tr></thead><tbody id="ursModernBody"></tbody></table></div>
+              <div class="urs-table-footer"><span id="ursShowingText"></span><div class="urs-pagination"><button id="ursPrevPage" class="secondary" type="button"><i data-lucide="chevron-left"></i></button><button id="ursPageOne" class="primary" type="button">1</button><button id="ursNextPage" class="secondary" type="button"><i data-lucide="chevron-right"></i></button></div></div>
+            </div>
+            <aside id="ursDetail" class="urs-detail-card"></aside>
+          </div>
+          <div id="ursList" class="hidden"></div>
+        </div>
+      </section>
+
+      <section id="sequence" class="page-section hidden sequence-editor-page">
+        <div class="sequence-editor-layout">
+          <div class="sequence-editor-main">
+            <div class="panel sequence-workspace">
+              <div class="sequence-tabs sequence-tabs-large">
+                <button type="button" class="sequence-tab active" data-seq-tab="injections">Injection List</button>
+                <button type="button" class="sequence-tab" data-seq-tab="settings">Run Settings</button>
+              </div>
+
+              <div id="sequenceInjectionsTab">
+                <div class="sequence-toolbar sequence-toolbar-large">
+                  <div class="sequence-toolbar-left">
+                    <button id="addSequenceBtn" class="primary" type="button"><i data-lucide="plus"></i> Add Injection</button>
+                    <button id="importSequenceBtn" class="secondary" type="button"><i data-lucide="upload"></i> Import</button>
+                    <button id="editSequenceBtn" class="secondary" type="button"><i data-lucide="pencil"></i> Edit</button>
+                    <button id="deleteSequenceBtn" class="secondary danger-action" type="button"><i data-lucide="trash-2"></i> Delete</button>
+                    <span class="toolbar-divider"></span>
+                    <button id="previewSequenceBtn" class="secondary" type="button"><i data-lucide="eye"></i> Preview Sequence</button>
+                  </div>
+                  <div class="sequence-toolbar-right">
+                    <button id="runSequenceBtn" class="primary sequence-run-btn" type="button"><i data-lucide="play"></i> Run Sequence</button>
+                  </div>
+                </div>
+                <div class="table-wrap sequence-table-wrap sequence-table-wrap-large">
+                  <table class="sequence-rich-table"><thead><tr><th><input type="checkbox" id="sequenceSelectAll"></th><th>#</th><th>Sample ID</th><th>Type</th><th>Vial</th><th>Injection Vol.<br>(µL)</th><th>Method</th><th>Expected RT<br>(min)</th><th>Status</th></tr></thead><tbody id="sequenceBody"></tbody></table>
+                </div>
+                <div class="sequence-table-footer"><span id="sequenceShowingText">Showing 0–0 of 0 injections</span><div class="sequence-pagination"><button type="button" disabled>‹</button><button type="button" class="active">1</button><button type="button" disabled>›</button></div></div>
+              </div>
+
+              <div id="sequenceSettingsTab" class="hidden sequence-settings-rich">
+                <div class="sequence-settings-heading"><h3>Sequence Information</h3><p>Configure run parameters and instrument settings for this sequence.</p></div>
+                <div class="sequence-settings-info-grid">
+                  <label>Sequence Name <span class="required">*</span><input id="sequenceName" value="HPLC_UV_Sequence_001"></label>
+                  <label>Associated Method <span class="required">*</span><select id="sequenceMethodInfo"></select></label>
+                  <label>Sequence Type<select id="sequenceTypeInfo"><option>Validation Run</option><option>Routine</option><option>System Suitability</option></select></label>
+                  <label>Priority<select id="sequencePriority"><option>Normal</option><option>High</option><option>Low</option></select></label>
+                  <label>Operator<select id="sequenceOperator"><option>QC</option><option>QA</option><option>Admin</option></select></label>
+                  <label>Data Folder<div class="path-input"><input id="sequenceDataFolder" value="C:\\Data\\HPLC_UV\\Seq001"><button type="button" class="icon-button" aria-label="Choose data folder"><i data-lucide="folder-open"></i></button></div></label>
+                  <label class="full-span">Description<textarea id="sequenceDescriptionRich" maxlength="500">Validation sequence for assay method.</textarea><small class="char-counter">36/500</small></label>
+                </div>
+
+                <div class="sequence-settings-card">
+                  <h3>Instrument Settings</h3><p>Set instrument and acquisition parameters for this run.</p>
+                  <div class="instrument-settings-grid">
+                    <label>Instrument<select id="sequenceInstrument"><option>HPLC-UV-001</option></select></label>
+                    <label>Detector<select id="sequenceDetector"><option>UV Detector</option></select></label>
+                    <label>Column<select id="sequenceColumn"><option>C18 (250 × 4.6 mm, 5 µm)</option></select></label>
+                    <label>Wavelength (nm)<input id="sequenceWavelength" type="number" value="254" min="190" max="600"></label>
+                    <label>Column Temperature (°C)<input id="sequenceColumnTemp" type="number" value="30"></label>
+                    <label>Run Time (min)<input id="sequenceRunTime" type="number" value="15"></label>
+                    <label>Flow Rate (mL/min)<input id="sequenceFlowRate" type="number" step="0.1" value="1.0"></label>
+                    <label>Equilibration Time (min)<input id="sequenceEquilibration" type="number" value="5"></label>
+                  </div>
+                </div>
+
+                <div class="sequence-settings-card">
+                  <h3>Data Handling</h3><p>Configure data acquisition and storage settings.</p>
+                  <div class="data-handling-grid">
+                    <label>Data Processing Method<select id="sequenceProcessing"><option>Default Processing</option><option>Manual Processing</option></select></label>
+                    <div class="toggle-setting"><span>Auto-Integrate</span><label class="toggle-control"><input id="sequenceAutoIntegrate" type="checkbox" checked><i></i></label><b>Enabled</b></div>
+                    <div class="toggle-setting"><span>Auto-Print Report</span><label class="toggle-control"><input id="sequenceAutoPrint" type="checkbox"><i></i></label><b>Disabled</b></div>
+                    <label>Result Storage Path<div class="path-input"><input id="sequenceResultPath" value="C:\\CSV\\Results"><button type="button" class="icon-button" aria-label="Choose result folder"><i data-lucide="folder-open"></i></button></div></label>
+                  </div>
+                </div>
+                <div class="sequence-settings-actions"><button id="sequencePreviewSettingsBtn" class="secondary" type="button"><i data-lucide="eye"></i> Preview Sequence</button><div><button id="sequenceSaveDraftBtn" class="secondary" type="button"><i data-lucide="save"></i> Save as Draft</button><button id="sequenceRunFromSettingsBtn" class="primary" type="button"><i data-lucide="play"></i> Run Sequence</button></div></div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="sequence-editor-side">
+            <div class="panel sequence-notes-panel sequence-side-card"><h3>Notes</h3><textarea id="sequenceNotes" placeholder="Add notes about this sequence..."></textarea></div>
+            <div class="panel sequence-attachment-panel sequence-side-card">
+              <div class="sequence-side-title"><h3>Attachments <span id="sequenceAttachmentCount">(0)</span></h3></div>
+              <div id="sequenceDropzone" class="sequence-upload-box file-dropzone sequence-upload-box-large" tabindex="0" role="button" aria-label="Upload sequence attachments"><span class="upload-icon"><i data-lucide="upload"></i></span><div><b>Select files to attach</b><small>Supported formats: PDF, CSV, XLSX,<br>DOCX, PNG, JPG (Max 10 MB/file)</small></div><button id="sequenceChooseFilesBtn" class="secondary" type="button"><i data-lucide="folder-open"></i> Choose Files</button></div>
+              <input id="sequenceAttachmentInput" type="file" hidden multiple accept=".pdf,.csv,.xlsx,.docx,.png,.jpg,.jpeg">
+              <div id="sequencePendingFiles" class="pending-file-list"></div><div id="sequenceAttachmentList" class="compact-attachment-list"></div>
+            </div>
+            <div class="panel sequence-summary-card">
+              <div class="sequence-summary-head"><i data-lucide="info"></i><b>Sequence Summary</b></div>
+              <div class="sequence-summary-list"><div><span>Total Injections</span><b id="sequenceTotal">0</b></div><div><span>Estimated Run Time</span><b id="sequenceEstimatedTime">~ 30 min</b></div><div><span>Last Modified</span><b id="sequenceModifiedAtStatus">—</b></div><div><span>Modified By</span><b id="sequenceCreatedByStatus">QC</b></div></div>
+            </div>
+            <div class="hidden"><span id="sequenceExecuted">0</span><span id="sequenceCompleted">0</span><span id="sequenceFailed">0</span><span id="sequenceCreatedAtStatus">—</span><span id="sequenceStatusBadge">DRAFT</span><span id="sequenceSettingsMethod">—</span><span id="sequenceSettingsVolume">10 µL</span><span id="sequenceSettingsFlow">1.0 mL/min</span><span id="sequenceSettingsWavelength">243 nm</span></div>
+          </aside>
+        </div>
+        <div class="sequence-download-row"><button id="downloadSequenceBtn" class="secondary" type="button"><i data-lucide="download"></i> Download Summary</button></div>
+      </section>
+
+      <section id="instrument" class="page-section hidden">
+        <div class="instrument-overview panel">
+          <div class="instrument-overview-main">
+            <div class="instrument-visual" aria-hidden="true"><div class="instrument-unit"><i></i><i></i><i></i><i></i></div></div>
+            <div class="instrument-identity">
+              <div class="instrument-title-row"><h3>HPLC-UV-001</h3><span class="instrument-qualified">Qualified</span></div>
+              <p>HPLC-UV System (Simulated)</p>
+              <p>Location: QC Laboratory</p>
+              <p>Software: HPLC-UV CSV System v1.0.0</p>
+              <button id="instrumentViewDetailsBtn" class="secondary" type="button"><i data-lucide="eye"></i> View Details</button>
+            </div>
+            <div class="instrument-meta">
+              <div><span>Instrument Status</span><b class="pass"><span class="dot"></span>Ready</b></div>
+              <div><span>Last Verification</span><b>12 Sep 2026</b></div>
+              <div><span>Next Verification Due</span><b>12 Sep 2027</b></div>
+              <div><span>Last Calibrated</span><b>01 Aug 2026</b></div>
+              <div><span>Column</span><b>C18, 250 × 4.6 mm, 5 µm</b></div>
+            </div>
+          </div>
+          <div class="quick-actions">
+            <h3>Quick Actions</h3>
+            <button id="instrumentSystemCheckBtn" class="primary" type="button"><i data-lucide="play"></i> Run System Check</button>
+            <button id="instrumentQualificationBtn" class="secondary" type="button"><i data-lucide="file-check-2"></i> View Qualification Records</button>
+            <button id="instrumentMaintenanceBtn" class="secondary" type="button"><i data-lucide="wrench"></i> View Maintenance Log</button>
+          </div>
+        </div>
+
+        <div class="instrument-module-grid">
+          <div class="module-card panel"><div class="module-card-head"><div><h3>Pump</h3><span class="module-status"><span class="dot"></span>Ready</span></div><div class="module-icon"><i data-lucide="gauge"></i></div></div><label>Flow rate (mL/min)</label><input id="pumpFlow" type="number" value="1.0" step="0.1"><div class="module-value">Pressure: <b id="pressureValue">112 bar</b></div><button class="secondary module-config" type="button"><i data-lucide="settings"></i> Configure</button></div>
+          <div class="module-card panel"><div class="module-card-head"><div><h3>Autosampler</h3><span class="module-status"><span class="dot"></span>Ready</span></div><div class="module-icon"><i data-lucide="box"></i></div></div><label>Injection volume (µL)</label><input id="instrumentInjectionVolume" type="number" value="10"><div class="module-value">Vial position: <b>01</b></div><button class="secondary module-config" type="button"><i data-lucide="settings"></i> Configure</button></div>
+          <div class="module-card panel"><div class="module-card-head"><div><h3>Column Oven</h3><span class="module-status"><span class="dot"></span>Ready</span></div><div class="module-icon"><i data-lucide="box"></i></div></div><label>Temperature (°C)</label><input id="ovenTemp" type="number" value="30"><div class="module-value">Set point: <b id="ovenValue">30 °C</b></div><button class="secondary module-config" type="button"><i data-lucide="settings"></i> Configure</button></div>
+          <div class="module-card panel"><div class="module-card-head"><div><h3>UV Detector</h3><span class="module-status"><span class="dot"></span>Ready</span></div><div class="module-icon"><i data-lucide="box"></i></div></div><label>Wavelength (nm)</label><input id="uvWavelength" type="number" value="243"><div id="uvRange" class="module-value">Valid range: 190–600 nm</div><button class="secondary module-config" type="button"><i data-lucide="settings"></i> Configure</button></div>
+        </div>
+
+        <div class="instrument-lower-grid">
+          <div class="panel instrument-config-panel">
+            <div class="instrument-tabs"><button class="instrument-tab active" type="button">Pump</button><button class="instrument-tab" type="button">Autosampler</button><button class="instrument-tab" type="button">Column Oven</button><button class="instrument-tab" type="button">UV Detector</button><button class="secondary restore-default" type="button"><i data-lucide="rotate-ccw"></i> Restore Default</button></div>
+            <h3>Pump Configuration</h3>
+            <div class="config-grid">
+              <div><label>Flow rate (mL/min)</label><input type="number" value="1.000" step="0.001"></div>
+              <div><label>Gradient mode</label><select><option>Isocratic</option><option>Gradient</option></select></div>
+              <div><label>Pressure limit (bar)</label><input type="number" value="400"></div>
+              <div><label>Stop time (min)</label><input type="number" value="10.0"></div>
+              <div><label>Solvent A</label><select><option>Water</option><option>Acetonitrile</option></select></div>
+              <div><label>Post time (min)</label><input type="number" value="5.0"></div>
+              <div><label>Solvent B</label><select><option>Acetonitrile</option><option>Water</option></select></div>
+            </div>
+            <div class="config-actions"><button class="secondary" type="button">Cancel</button><button class="primary" type="button">Save Settings</button></div>
+          </div>
+
+          <div class="panel diagnostics-panel">
+            <div class="panel-head"><h3>Module Status & Diagnostics</h3><span class="status-chip"><i data-lucide="check"></i> All modules ready</span></div>
+            <table><thead><tr><th>Module</th><th>Status</th><th>Parameter</th><th>Value</th><th>Limit</th><th>Last Check</th></tr></thead><tbody>
+              <tr><td>Pump</td><td class="pass"><span class="dot"></span>Ready</td><td>Pressure</td><td id="diagnosticPressure">112 bar</td><td>≤ 400 bar</td><td>12 Sep 2026, 22:10</td></tr>
+              <tr><td>Autosampler</td><td class="pass"><span class="dot"></span>Ready</td><td>Vial position</td><td>01</td><td>—</td><td>12 Sep 2026, 22:10</td></tr>
+              <tr><td>Column Oven</td><td class="pass"><span class="dot"></span>Ready</td><td>Temperature</td><td id="diagnosticTemp">30 °C</td><td>± 5 °C</td><td>12 Sep 2026, 22:10</td></tr>
+              <tr><td>UV Detector</td><td class="pass"><span class="dot"></span>Ready</td><td>Wavelength</td><td id="diagnosticWavelength">243 nm</td><td>190–600 nm</td><td>12 Sep 2026, 22:10</td></tr>
+            </tbody></table>
+            <button class="secondary diagnostic-btn" type="button"><i data-lucide="activity"></i> Run Diagnostic Test</button>
+          </div>
+        </div>
+
+        <div class="instrument-bottom-grid">
+          <div class="panel instrument-verification-panel">
+            <h3>Instrument Verification</h3>
+            <div class="verification-layout">
+              <div><label>Verification item</label><select><option>UV Wavelength Accuracy</option><option>Flow Rate Accuracy</option><option>Temperature Accuracy</option></select></div>
+              <div><label>Test wavelength (nm)</label><input id="detectorTestValue" type="number" placeholder="243"></div>
+              <button id="verifyDetectorBtn" class="primary" type="button">Verify</button>
+            </div>
+            <div id="detectorResult" class="result-box"></div>
+          </div>
+          <div class="panel recent-runs-panel">
+            <div class="panel-head"><h3>Recent Runs</h3><button id="instrumentRecentRunsBtn" class="secondary" type="button">View All</button></div>
+            <table><thead><tr><th>Date/Time</th><th>Sequence</th><th>Status</th><th>User</th></tr></thead><tbody id="instrumentRecentRuns"><tr><td>—</td><td>—</td><td>—</td><td>QC</td></tr></tbody></table>
+          </div>
+        </div>
+      </section>
+
+      <section id="chromatogram" class="page-section hidden">
+        <div class="section-intro"><span class="tag">CHROMATOGRAM</span><h2>Chromatographic result</h2><p>Review simulated detector response and calculated peak results.</p></div>
+        <div class="panel">
+          <div class="toolbar"><div><label>Injection</label><select id="chromSampleSelect"></select></div><div><span id="chromMeta" class="muted"></span><button id="downloadChromBtn" class="secondary" type="button"><i data-lucide="download"></i> Download Summary</button></div></div>
+          <div id="chromEmpty" class="result-box">No chromatogram data available. Run a sequence first.</div>
+          <div class="chrom-wrap"><svg id="chromSvg" viewBox="0 0 900 300" preserveAspectRatio="none"><polyline id="chromLine" fill="none" points=""></polyline></svg></div>
+          <div class="legend"><span>UV response</span><span id="chromLegend">No chromatogram data available.</span></div>
+        </div>
+        <div class="panel">
+          <h3>Peak table</h3>
+          <table><thead><tr><th>Peak</th><th>RT (min)</th><th>Area</th><th>Area %</th><th>Height</th><th>Identification</th></tr></thead>
+          <tbody id="peakTableBody"><tr><td colspan="6" class="muted">No chromatogram data available. Run a sequence first.</td></tr></tbody></table>
+        </div>
+      </section>
+
+      <section id="data-review" class="page-section hidden">
+        <div class="assay-context"><span class="tag">DATA REVIEW</span><span>Calculate assay results and perform QC review before submitting for QA approval.</span></div>
+
+        <div class="assay-runbar panel">
+          <div><span>Sequence</span><b id="assaySequence">—</b></div>
+          <div><span>Injection</span><select id="assayInjectionSelect" class="assay-injection-select"><option value="">No chromatogram data</option></select></div>
+          <div class="assay-nav-buttons"><button id="assayPrevBtn" class="icon-button" type="button"><i data-lucide="chevron-left"></i></button><button id="assayNextBtn" class="icon-button" type="button"><i data-lucide="chevron-right"></i></button></div>
+          <div><span>Sample ID</span><b id="assaySampleId">—</b></div>
+          <div><span>Sample Type</span><b id="assaySampleType">—</b></div>
+          <div><span>Method</span><b id="assayMethod">—</b></div>
+          <div><span>Run Date & Time</span><b id="assayRunTime">—</b></div>
+          <div><span>Status</span><b class="case-status pass" id="assayCalcStatus">Calculated</b></div>
+          <button id="viewAssayChromBtn" class="secondary" type="button"><i data-lucide="activity"></i> View Chromatogram</button>
+        </div>
+
+        <div class="assay-top-grid">
+          <div class="panel assay-peak-panel">
+            <h3>1. Peak Selection</h3><p class="muted">Select the analyte peak for calculation.</p>
+            <div class="table-scroll"><table class="assay-peak-table"><thead><tr><th></th><th>#</th><th>RT (min)</th><th>Area</th><th>Height</th><th>Identification</th></tr></thead><tbody id="assayPeakBody"><tr><td colspan="6" class="muted">No chromatogram data available.</td></tr></tbody></table></div>
+          </div>
+          <div class="panel assay-chrom-panel">
+            <div class="panel-head"><h3>Chromatogram Preview</h3><button id="assayExpandChromBtn" class="icon-button" type="button"><i data-lucide="maximize-2"></i></button></div>
+            <div class="assay-chart-legend"><span>mAU</span><b>— UV <span id="assayWavelength">243</span> nm</b></div>
+            <div class="assay-chart-wrap"><svg id="assayChromSvg" viewBox="0 0 700 270" preserveAspectRatio="none"><line x1="45" y1="235" x2="680" y2="235" class="assay-axis"/><line x1="45" y1="20" x2="45" y2="235" class="assay-axis"/><g id="assayGrid"></g><polyline id="assayChromLine" fill="none" points=""></polyline><g id="assayPeakLabels"></g></svg></div>
+            <div class="assay-chart-tools"><button class="icon-button" type="button" data-assay-tool="zoomout"><i data-lucide="zoom-out"></i></button><button class="icon-button" type="button" data-assay-tool="zoomin"><i data-lucide="zoom-in"></i></button><button class="icon-button" type="button"><i data-lucide="move"></i></button><button class="icon-button" type="button"><i data-lucide="maximize"></i></button><button class="icon-button" type="button" id="assayResetZoom"><i data-lucide="rotate-ccw"></i></button><label><input id="assayPeakLabelsToggle" type="checkbox" checked> Show peak labels</label></div>
+          </div>
+          <div class="panel assay-sample-panel">
+            <h3>Sample Information</h3>
+            <div class="detail-table assay-details">
+              <div><span>Sample ID</span><b id="assayInfoSample">—</b></div>
+              <div><span>Sample Type</span><b id="assayInfoType">—</b></div>
+              <div><span>Vial Position</span><b id="assayInfoVial">—</b></div>
+              <div><span>Injection Volume</span><b id="assayInfoVolume">—</b></div>
+              <div><span>Dilution Factor</span><b>1</b></div>
+              <div><span>Sample Weight</span><b>—</b></div>
+              <div><span>Sample Preparation</span><b>—</b></div>
+              <div><span>Data File</span><b id="assayDataFile">—</b></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="assay-bottom-grid">
+          <div class="panel assay-calculation-panel">
+            <h3>2. Calculation Parameters</h3>
+            <div class="assay-calc-grid">
+              <div><label>Standard peak area</label><input id="standardArea" type="number" value="1000000"></div>
+              <div><label>Sample peak area</label><input id="sampleArea" type="number" value="985000"></div>
+              <div><label>Standard concentration (µg/mL)</label><input id="standardConc" type="number" value="10" step="0.1"></div>
+              <div><label>Dilution factor</label><input id="assayDilutionFactor" type="number" value="1" step="0.1"></div>
+              <div class="assay-formula"><label>Assay formula</label><select id="assayFormula"><option>(Sample / Standard) × Cs × DF</option></select></div>
+              <div class="assay-calc-action"><button id="calculateBtn" class="primary" type="button">Calculate</button></div>
+            </div>
+          </div>
+
+          <div class="panel assay-result-panel">
+            <h3>3. Result</h3>
+            <div id="assayResultSummary" class="assay-result-summary">
+              <div><span>Sample concentration</span><strong id="assayConcentration">—</strong> <small>µg/mL</small></div>
+              <div><span>Assay</span><strong id="assayPercent">—</strong></div>
+            </div>
+            <div class="detail-table assay-result-details">
+              <div><span>Acceptance criteria</span><b>95.0 – 105.0 %</b></div>
+              <div><span>Result</span><b id="assaySpecificationResult">—</b></div>
+              <div><span>Status</span><b id="assayPassBadge" class="case-status">—</b></div>
+            </div>
+            <div class="assay-result-actions"><button id="saveAssayResultBtn" class="secondary" type="button"><i data-lucide="save"></i> Save Result</button><button id="downloadAssayResultBtn" class="secondary" type="button"><i data-lucide="download"></i> Download Result</button></div>
+          </div>
+
+          <div class="panel assay-review-panel">
+            <h3>Data Review / Approval</h3>
+            <div class="detail-table">
+              <div><b>Review Status</b><span id="dataReviewStatus">DRAFT</span></div>
+              <div><b>Reviewer</b><span id="dataReviewReviewer">—</span></div>
+              <div><b>Date & Time</b><span id="dataReviewTime">—</span></div>
+              <div><b>Electronic Signature</b><span id="dataReviewSignature">—</span></div>
+              <div><b>QA Review Comment</b><span id="dataReviewComment">—</span></div>
+            </div>
+            <button id="submitDataReviewBtn" class="secondary" type="button">Submit for QA Review</button><button id="dataReviewQAButton" class="primary hidden" type="button">Review / Approve</button>
+          </div>
+        </div>
+
+        <div class="panel assay-history-panel">
+          <div class="panel-head"><h3>Previous Results (Same Sample)</h3></div>
+          <div class="table-scroll"><table class="assay-history-table"><thead><tr><th>#</th><th>INJECTION</th><th>RT (min)</th><th>AREA</th><th>ASSAY (%)</th><th>RESULT</th><th>REVIEW STATUS</th><th>REVIEWED BY</th><th>DATE/TIME</th></tr></thead><tbody id="assayHistoryBody"></tbody></table></div>
+        </div>
+
+        <div class="assay-attachments-row">
+          <div class="panel"><div class="card-title-row"><h3>Attachments</h3><button id="assayChooseFilesBtn" class="secondary" type="button"><i data-lucide="paperclip"></i> Add Attachment</button></div><div id="assayDropzone" class="assay-dropzone file-dropzone" tabindex="0" role="button" aria-label="Upload assay attachments"><i data-lucide="upload"></i><span>Select or drop files here<br><small>Supported formats: PDF, CSV, PNG, JPG, XLSX, DOCX (Max 10 MB/file)</small></span></div><input id="assayAttachmentInput" type="file" hidden multiple accept=".pdf,.csv,.png,.jpg,.jpeg,.xlsx,.docx"><div id="assayPendingFiles" class="pending-file-list"></div><div id="assayAttachmentList" class="compact-attachment-list"></div></div>
+          <div class="panel"><label>Comments (Optional)</label><textarea id="assayComments" placeholder="Add comments about this calculation (e.g., peak selection, anomalies)..."></textarea></div>
+        </div>
+      </section>
+
+      <section id="attachments" class="page-section hidden">
+        <div class="section-intro attachment-page-intro"><span class="tag">EVIDENCE</span><p>Add validation evidence files to the controlled record.</p></div>
+        <div class="panel attachment-main-panel">
+          <div class="attachment-section-heading">
+            <div><h3>Attachments &amp; Supporting Evidence</h3><p class="muted">Upload and manage controlled evidence files linked to validation activities.</p></div>
+            <div class="status-pill"><span class="dot"></span> System Ready</div>
+          </div>
+          <div class="attachment-upload-grid">
+            <div>
+              <label>Related Activity</label>
+              <select id="attachmentActivity">
+                <option value="">Select activity</option>
+                <option value="IQ - System Identification">IQ - System Identification</option>
+                <option value="Analytical Method">Analytical Method</option>
+                <option value="Sequence">Sequence</option>
+                <option value="Instrument Verification">Instrument Verification</option>
+                <option value="Chromatogram">Chromatogram</option>
+                <option value="Assay / Data Review">Assay / Data Review</option>
+                <option value="IQ/OQ/PQ">IQ/OQ/PQ</option>
+                <option value="Risk Assessment">Risk Assessment</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label>Supporting evidence file</label>
+              <div id="attachmentDropzone" class="attachment-dropzone" tabindex="0" role="button" aria-label="Choose supporting evidence files">
+                <div class="attachment-drop-icon"><i data-lucide="upload"></i></div>
+                <div><b>Choose Files</b><span id="attachmentFileSummary">No file chosen</span></div>
+                <small>Supported formats: PDF, DOCX, XLSX, CSV, PNG, JPG (Max 10 MB/file)</small>
+              </div>
+              <input id="attachmentInput" type="file" hidden multiple accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls,.csv,.docx,.doc">
+            </div>
+          </div>
+          <button id="addAttachmentBtn" class="primary attachment-action" type="button"><i data-lucide="paperclip"></i> Attach Selected Files</button>
+          <div id="attachmentPendingFiles" class="pending-file-list"></div>
+          <div class="attachment-list-heading"><h3>Supporting Evidence <span id="attachmentCountLabel" class="badge">0</span></h3></div>
+          <div id="attachmentList" class="file-list"></div>
+        </div>
+      </section>
+
+      <section id="audit" class="page-section hidden">
+        <div class="audit-page-head">
+          <div>
+            <div class="section-toolbar-label">Audit activity and controlled user actions</div>
+            <p>Track all activities and changes in the system for compliance and data integrity.</p>
+          </div>
+          <div class="audit-head-status">
+            <div class="status-pill"><span class="dot"></span> System Ready</div>
+            <small>HPLC-UV-001 | v1.0.0</small>
+          </div>
+        </div>
+
+        <div class="panel audit-filter-panel">
+          <div class="audit-filter-grid">
+            <div class="audit-filter-field audit-date-field">
+              <label>Date Range</label>
+              <input id="auditDateFrom" type="date">
+              <span class="audit-date-separator">–</span>
+              <input id="auditDateTo" type="date">
+            </div>
+            <div class="audit-filter-field">
+              <label>User</label>
+              <select id="auditUserFilter"><option value="">All Users</option></select>
+            </div>
+            <div class="audit-filter-field">
+              <label>Role</label>
+              <select id="auditRoleFilter">
+                <option value="">All Roles</option><option value="QC">QC</option><option value="QA">QA</option><option value="Admin">Admin</option><option value="System">System</option>
+              </select>
+            </div>
+            <div class="audit-filter-field">
+              <label>Module</label>
+              <select id="auditModuleFilter">
+                <option value="">All Modules</option>
+                <option>Analytical Method</option><option>Sequence</option><option>Instrument</option><option>Chromatogram</option>
+                <option>Assay / Data Review</option><option>URS</option><option>CSV Validation</option><option>Validation Report</option>
+                <option>Attachments</option><option>Audit Trail</option><option>Administration</option><option>Authentication</option>
+              </select>
+            </div>
+            <div class="audit-filter-field">
+              <label>Action Type</label>
+              <select id="auditActionFilter">
+                <option value="">All Actions</option>
+                <option>Created</option><option>Modified</option><option>Deleted</option><option>Submitted</option>
+                <option>Approved</option><option>Rejected</option><option>Commented</option><option>Login</option><option>Logout</option>
+                <option>Downloaded</option><option>Executed</option><option>Signed</option>
+              </select>
+            </div>
+            <div class="audit-filter-field">
+              <label>Record</label>
+              <input id="auditRecordSearch" type="search" placeholder="Search by record ID...">
+            </div>
+            <div class="audit-filter-actions">
+              <button id="auditApplyBtn" class="primary" type="button"><i data-lucide="refresh-cw"></i> Apply</button>
+              <button id="auditResetBtn" class="secondary" type="button">Reset Filters</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="audit-layout">
+          <div class="panel audit-log-panel">
+            <div class="panel-head audit-log-head">
+              <div>
+                <h3>Audit Trail Log</h3>
+                <span id="auditSearchCount" class="muted">Showing 0 records</span>
+              </div>
+              <button id="exportAuditBtn" class="secondary" type="button"><i data-lucide="download"></i> Export Audit Trail</button>
+            </div>
+            <div class="audit-table-wrap">
+              <table class="audit-modern-table">
+                <thead><tr><th>No.</th><th>Date &amp; Time</th><th>User</th><th>Role</th><th>Module</th><th>Action</th><th>Record ID</th><th>Details</th><th></th></tr></thead>
+                <tbody id="auditBody"></tbody>
+              </table>
+            </div>
+            <div class="audit-log-footer">
+              <span id="auditShowingText" class="muted"></span>
+              <div class="audit-pagination">
+                <button id="auditPrevBtn" class="secondary audit-page-btn" type="button"><i data-lucide="chevron-left"></i></button>
+                <span id="auditPageNumber" class="audit-page-current">1</span>
+                <button id="auditNextBtn" class="secondary audit-page-btn" type="button"><i data-lucide="chevron-right"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <aside id="auditDetailsPanel" class="panel audit-details-panel">
+            <div class="panel-head">
+              <h3>Log Details</h3>
+              <button id="auditDetailsCloseBtn" class="icon-button audit-close-btn" type="button" aria-label="Close details">×</button>
+            </div>
+            <div id="auditDetailsContent" class="audit-details-content">
+              <div class="audit-empty-detail">
+                <div class="audit-empty-icon"><i data-lucide="info"></i></div>
+                <b>Select an audit record</b>
+                <span>Click a row to view the complete event details.</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="validation" class="page-section hidden">
+        <div class="validation-top-panel panel">
+          <div class="validation-summary validation-summary-rich">
+            <div><span>Total Tests</span><b id="totalTests">17</b></div>
+            <div><span>Executed</span><b id="executedCount">0</b></div>
+            <div class="summary-pass"><span>Passed</span><b id="passedCount">0</b></div>
+            <div class="summary-fail"><span>Failed</span><b id="failedCount">0</b></div>
+            <div class="summary-review"><span>Pending QA Review</span><b id="pendingReviewCount">0</b></div>
+            <div><span>Approved (QA)</span><b id="approvedCount">0</b></div>
+            <div><span>In Progress</span><b id="inProgressCount">0</b></div>
+            <div class="validation-add-wrap"><button id="downloadValidationBtn" class="secondary" type="button"><i data-lucide="download"></i> Download URS Summary</button><button id="addValidationBtn" class="primary" type="button"><i data-lucide="plus"></i> Add Test</button></div>
+          </div>
+        </div>
+
+        <div class="validation-filter-panel panel">
+          <div class="validation-filter-row">
+            <input id="validationSearch" type="search" placeholder="Search test ID, title, or keyword...">
+            <select id="validationStatusFilter">
+              <option value="">All Status</option>
+              <option value="PENDING">Not Tested</option>
+              <option value="PASS">Passed</option>
+              <option value="FAIL">Failed</option>
+              <option value="REVIEW">Pending QA</option>
+              <option value="APPROVED">Approved</option>
+              <option value="INPROGRESS">In Progress</option>
+              <option value="REJECTED">Rejected</option>
+            </select>
+            <select id="validationModuleFilter">
+              <option value="">All Modules</option>
+              <option value="System">System</option>
+              <option value="Instrument">Instrument</option>
+              <option value="UV Detector">UV Detector</option>
+              <option value="Pump">Pump</option>
+              <option value="Column Oven">Column Oven</option>
+              <option value="Data">Data</option>
+              <option value="Sequence">Sequence</option>
+            </select>
+            <button id="validationResetFilters" class="secondary" type="button">Reset</button>
+          </div>
+        </div>
+
+        <div class="validation-workspace">
+          <div class="validation-list-panel panel">
+            <div class="validation-table-wrap">
+              <table class="validation-rich-table">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>ID</th>
+                    <th>TEST TITLE</th>
+                    <th>MODULE</th>
+                    <th>STATUS</th>
+                    <th>EXECUTED BY</th>
+                    <th>EXECUTED ON</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="validationTableBody"></tbody>
+              </table>
+            </div>
+            <div class="validation-list-footer">
+              <span id="validationShowing">Showing 0 tests</span>
+              <div class="validation-pagination">
+                <button id="validationPrev" class="icon-button" type="button"><i data-lucide="chevron-left"></i></button>
+                <button id="validationPage" class="icon-button active" type="button">1</button>
+                <button id="validationNext" class="icon-button" type="button"><i data-lucide="chevron-right"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="validation-detail-panel panel" id="validationDetailPanel">
+            <div class="validation-detail-empty">Select a validation test to view its details.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="report" class="page-section hidden">
+        <div class="report-page-subtitle">Generate and manage CSV validation reports based on executed tests.</div>
+
+        <div class="report-stepper panel">
+          <div class="report-step active" id="reportStepSelect"><span>1</span><b>Select Tests</b></div><i></i><div class="report-step" id="reportStepGenerate"><span>2</span><b>Generate Report</b></div><i></i><div class="report-step" id="reportStepReview"><span>3</span><b>Review &amp; Finalize</b></div><i></i><div class="report-step" id="reportStepQA"><span>4</span><b>QA Approval</b></div>
+          <button id="downloadReportBtn" class="primary report-generate-btn" type="button"><i data-lucide="file-down"></i> Generate / Download Report</button>
+        </div>
+
+        <div class="report-meta panel">
+          <div><span>Report ID</span><b>VR-001</b></div><div><span>Validation Scope</span><b>HPLC-UV System</b></div><div><span>Report Type</span><b>CSV Validation Report</b></div><div><span>Period</span><b>1 Sep 2026 – 12 Sep 2026</b></div><div><span>Status</span><strong id="reportStatus" class="report-status">DRAFT</strong></div>
+        </div>
+
+        <div class="report-workspace">
+          <div class="report-left">
+            <div class="panel report-select-panel">
+              <div class="report-section-heading"><div><h3>1. Select Tests to Include</h3><p>Choose executed tests to be included in the validation report.</p></div></div>
+              <div class="report-test-table-wrap"><table class="report-test-table"><thead><tr><th></th><th>ID</th><th>TEST TITLE</th><th>MODULE</th><th>STATUS</th><th>EXECUTED ON</th></tr></thead><tbody id="reportTestBody"></tbody></table></div>
+              <div class="report-selected-count" id="reportSelectedCount">0 tests selected</div>
+            </div>
+
+            <div class="report-bottom-grid">
+              <div class="panel report-info-card">
+                <h3>2. Report Information</h3>
+                <label>Report Title<input id="reportTitleInput" value="HPLC-UV CSV Validation Report"></label>
+                <label>Report Version<select id="reportVersionInput"><option>1.0</option><option>1.1</option><option>2.0</option></select></label>
+                <label>Prepared by<select id="reportPreparedBy"><option value="QC">QC</option><option value="QA">QA</option></select></label>
+                <label>Prepared Date<input id="reportPreparedDate" value="12 Sep 2026"></label>
+                <label>Report Template<select id="reportTemplate"><option>Default Template</option><option>Detailed CSV Template</option></select></label>
+              </div>
+              <div class="panel report-content-card report-supporting-card">
+                <div class="card-title-row"><div><h3>3. Supporting Documents</h3><p>Attach controlled supporting documents to VR-001.</p></div><button id="reportChooseFilesBtn" class="secondary" type="button"><i data-lucide="paperclip"></i> Add Attachment</button></div>
+                <input id="reportAttachmentInput" type="file" hidden multiple accept=".pdf,.csv,.xlsx,.docx,.png,.jpg,.jpeg">
+                <div id="reportPendingFiles" class="pending-file-list"></div>
+                <div id="reportAttachmentList" class="compact-attachment-list"></div>
+              </div>
+              <div class="panel report-content-card">
+                <h3>4. Additional Content</h3><p>Include optional sections in the report.</p>
+                <label><input id="reportIncludeExecutive" type="checkbox" checked> Executive Summary</label>
+                <label><input id="reportIncludeTests" type="checkbox" checked> Test Summary Table</label>
+                <label><input id="reportIncludeDeviations" type="checkbox" checked> Deviations and CAPA</label>
+                <label><input id="reportIncludeAttachments" type="checkbox" checked> Attachments List</label>
+                <label><input id="reportIncludeConclusion" type="checkbox" checked> Conclusion</label>
+              </div>
+            </div>
+            <div class="report-actions-bar panel"><button id="saveReportDraftBtn" class="secondary" type="button"><i data-lucide="save"></i> Save as Draft</button><button id="previewReportBtn" class="secondary" type="button"><i data-lucide="eye"></i> Preview Report</button><button id="prepareReportBtn" class="primary" type="button"><i data-lucide="send"></i> Finalize &amp; Submit for QA Review</button><button id="reviewReportBtn" class="secondary hidden" type="button"><i data-lucide="clipboard-check"></i> Review Report</button></div>
+          </div>
+
+          <div class="panel report-preview-card">
+            <div class="report-preview-toolbar"><h3>Report Preview</h3><div><button id="reportPrevPageBtn" type="button" class="icon-button"><i data-lucide="chevron-left"></i></button><span id="reportPageIndicator">1 / 25</span><button id="reportNextPageBtn" type="button" class="icon-button"><i data-lucide="chevron-right"></i></button><button id="reportZoomOutBtn" type="button" class="icon-button">−</button><span id="reportZoomLabel">100%</span><button id="reportZoomInBtn" type="button" class="icon-button">+</button><button id="reportFullscreenBtn" type="button" class="icon-button"><i data-lucide="maximize"></i></button></div></div>
+            <div class="report-preview-scroll"><div class="report-paper">
+              <div class="paper-top"><div class="paper-logo">HPLC</div><div><b>HPLC-UV</b><small>CSV System</small></div><span>CONFIDENTIAL</span></div>
+              <h1>CSV VALIDATION REPORT</h1><h2>HPLC-UV System</h2><hr>
+              <div class="paper-details"><div><b>Report ID</b><span>VR-001</span></div><div><b>System Name</b><span>HPLC-UV</span></div><div><b>Validation Period</b><span>1 Sep 2026 – 12 Sep 2026</span></div><div><b>Report Date</b><span id="paperReportDate">12 Sep 2026</span></div><div><b>Prepared by</b><span id="paperPreparedBy">QC</span></div><div><b>Reviewed by</b><span id="paperReviewedBy">—</span></div><div><b>Version</b><span id="paperReportVersion">1.0</span></div></div>
+              <hr><h3>1. Executive Summary</h3><p id="paperExecutiveText">The HPLC-UV system has been tested in accordance with the User Requirement Specification (URS) and validation protocol. The report summarizes the executed validation tests and their review status.</p>
+              <div id="paperOverallResult" class="paper-result">Overall Result: PENDING</div>
+              <h3>2. Scope</h3><p>This report covers Installation Qualification (IQ), Operational Qualification (OQ), and Performance Qualification (PQ) for the HPLC-UV system.</p>
+              <h3>3. Test Summary</h3><div id="paperTestSummary"></div>
+            </div></div>
+          </div>
+        </div>
+        <div class="panel report-legacy-info"><div class="report-legacy-grid"><div><div class="detail-table"><div><b>Prepared by</b><span id="preparedBy">—</span></div><div><b>Prepared date/time</b><span id="preparedAt">—</span></div></div></div><div><div class="detail-table"><div><b>Reviewer</b><span id="reportReviewer">—</span></div><div><b>Review date/time</b><span id="reportReviewedAt">—</span></div></div></div></div><div class="panel"><h3>QA Review Comment</h3><p id="reportComment" class="muted">—</p></div><h3>Electronic Signature</h3><div id="signatureResult" class="signature-result"><div class="muted">No approval signature recorded.</div></div></div>
+      </section>
+
+      <section id="admin" class="page-section hidden">
+<div class="admin-page-head"><div><div class="section-toolbar-label">Administration and system controls</div><p>Manage users, roles, system settings, and master data for the CSV system.</p></div><div class="audit-head-status"><div class="status-pill"><span class="dot"></span> System Ready</div><small>HPLC-UV-001 | v1.0.0</small></div></div>
+<div class="panel admin-tabs-panel"><div class="admin-tabs">
+<button class="admin-tab active" data-admin-tab="users" type="button">Users</button><button class="admin-tab" data-admin-tab="roles" type="button">Roles &amp; Permissions</button><button class="admin-tab" data-admin-tab="config" type="button">System Configuration</button><button class="admin-tab" data-admin-tab="audit-settings" type="button">Audit Settings</button><button class="admin-tab" data-admin-tab="master" type="button">Master Data</button><button class="admin-tab" data-admin-tab="backup" type="button">Backup &amp; Restore</button>
+</div></div>
+<div id="adminUsersTab" class="admin-tab-panel"><div class="admin-users-layout">
+<div class="panel admin-user-list-panel"><div class="panel-head"><div><h3>User Management</h3><span class="muted">Add, edit, and manage user accounts.</span></div><button id="adminAddUserBtn" class="primary admin-write-control" type="button"><i data-lucide="plus"></i> Add User</button></div>
+<div class="admin-search-row"><input id="adminUserSearch" type="search" placeholder="Search by name, email, role, or username..."><select id="adminRoleFilter"><option value="">All Roles</option><option value="QA">Quality Assurance</option><option value="QC">Quality Control</option><option value="Admin">Administrator</option></select><select id="adminStatusFilter"><option value="">All Status</option><option value="Active">Active</option><option value="Inactive">Inactive</option></select></div>
+<div class="admin-table-wrap"><table class="admin-user-table"><thead><tr><th></th><th>No.</th><th>Username</th><th>Full Name</th><th>Email</th><th>Role</th><th>Status</th><th>Last Login</th><th>Actions</th></tr></thead><tbody id="adminUsersBody"></tbody></table></div>
+<div class="admin-table-footer"><span id="adminUserCount" class="muted"></span><div><button id="adminPrevUsers" class="secondary admin-page-btn" type="button"><i data-lucide="chevron-left"></i></button><span id="adminUserPage" class="admin-page-current">1</span><button id="adminNextUsers" class="secondary admin-page-btn" type="button"><i data-lucide="chevron-right"></i></button></div></div></div>
+<aside id="adminUserEditor" class="panel admin-editor-panel"><div class="panel-head"><div><h3 id="adminEditorTitle">Add New User</h3><span id="adminEditorSubtitle" class="muted">Fill in the information below to create a new user.</span></div><button id="adminCloseEditor" class="icon-button" type="button"><i data-lucide="x"></i></button></div>
+<form id="adminUserForm"><h4>Account Information</h4>
+<label>Username <b>*</b><input id="adminUsername" required placeholder="e.g. qa-004"></label><label>Full Name <b>*</b><input id="adminFullName" required placeholder="e.g. Budi Santoso"></label><label>Email <b>*</b><input id="adminEmail" type="email" required placeholder="e.g. budi@company.com"></label><label>Password <b>*</b><input id="adminPassword" type="password" placeholder="Minimum 8 characters"></label><label>Confirm Password <b>*</b><input id="adminPasswordConfirm" type="password" placeholder="Re-enter password"></label>
+<h4>Role &amp; Access</h4><label>Role <b>*</b><select id="adminUserRole" required><option value="">Select role</option><option value="QA">Quality Assurance</option><option value="QC">Quality Control</option><option value="Admin">Administrator</option></select></label>
+<div class="admin-access-box"><b>System Access</b><label class="check-label"><input type="checkbox" checked disabled> HPLC-UV</label><label class="check-label"><input type="checkbox" checked disabled> CSV System</label></div>
+<div class="admin-status-box"><b>Status</b><label class="radio-label"><input name="adminStatus" type="radio" value="Active" checked> Active</label><label class="radio-label"><input name="adminStatus" type="radio" value="Inactive"> Inactive</label></div>
+<label>Additional Information <span>(Optional)</span><textarea id="adminNotes" maxlength="500" placeholder="e.g. Temporary account, project-based, etc."></textarea></label>
+<div class="admin-editor-actions"><button id="adminCancelUser" class="secondary" type="button">Cancel</button><button id="adminSaveUser" class="primary admin-write-control" type="submit">Save User</button></div></form></aside></div></div>
+<div id="adminRolesTab" class="admin-tab-panel hidden"><div class="panel admin-settings-card"><h3>Roles &amp; Permissions</h3><p class="muted">Admin can edit role permissions. QC and QA can only view these settings.</p><div class="permission-grid"><div class="permission-row header"><b>Permission</b><b>QC</b><b>QA</b><b>Admin</b></div><div class="permission-row"><span>Analytical Method</span><span>View / Edit</span><span>View / Review</span><span>Full Access</span></div><div class="permission-row"><span>Instrument</span><span>View / Operate</span><span>View</span><span>Full Access</span></div><div class="permission-row"><span>Assay / Data Review</span><span>Execute / Submit</span><span>Review / Approve</span><span>Full Access</span></div><div class="permission-row"><span>URS / CSV Validation</span><span>Execute</span><span>Review / Approve</span><span>Full Access</span></div><div class="permission-row"><span>Validation Report</span><span>Prepare</span><span>Review / Approve</span><span>Full Access</span></div><div class="permission-row"><span>Attachments</span><span>Upload</span><span>View / Review</span><span>Full Access</span></div><div class="permission-row"><span>Audit Trail</span><span>View</span><span>View</span><span>View / Configure</span></div><div class="permission-row"><span>User Management</span><span>View Only</span><span>View Only</span><span>Edit</span></div></div></div></div>
+<div id="adminConfigTab" class="admin-tab-panel hidden"><div class="panel admin-settings-card"><h3>System Configuration</h3><p class="muted">System configuration is controlled by Admin.</p><div class="settings-grid"><label>System ID<input value="HPLC-UV-001" disabled></label><label>Application Version<input value="1.0.0" disabled></label><label>Software<input value="OpenLab CDS (Simulated)" disabled></label><label>Instrument<input value="Agilent 1260 Infinity II (Simulated)" disabled></label></div></div></div>
+<div id="adminAuditSettingsTab" class="admin-tab-panel hidden"><div class="panel admin-settings-card"><h3>Audit Settings</h3><p class="muted">Configure audit-trail event capture. Admin can edit; QC and QA are view-only.</p><label class="toggle-line"><input type="checkbox" checked class="admin-write-control"> Record user logins and logouts</label><label class="toggle-line"><input type="checkbox" checked class="admin-write-control"> Record data changes</label><label class="toggle-line"><input type="checkbox" checked class="admin-write-control"> Record electronic signatures</label></div></div>
+<div id="adminMasterTab" class="admin-tab-panel hidden"><div class="panel admin-settings-card"><h3>Master Data</h3><p class="muted">Reference master data for the HPLC-UV CSV system.</p><div class="master-list"><span>Solvent A — Water</span><span>Solvent B — Acetonitrile</span><span>Column — C18, 250 × 4.6 mm, 5 µm</span><span>UV Detector Range — 190–600 nm</span></div></div></div>
+<div id="adminBackupTab" class="admin-tab-panel hidden"><div class="panel admin-settings-card"><h3>Backup &amp; Restore</h3><p class="muted">Backup and restore functions are restricted to Admin.</p><button id="adminBackupBtn" class="primary admin-write-control" type="button"><i data-lucide="database-backup"></i> Create Backup</button> <button id="adminRestoreBtn" class="secondary admin-write-control" type="button"><i data-lucide="rotate-ccw"></i> Restore Backup</button></div></div>
+</section></main>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html>
